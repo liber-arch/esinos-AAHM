@@ -1,0 +1,5 @@
+build/
+code/esinos
+*.o
+*.img
+.vscode/
