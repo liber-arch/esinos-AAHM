@@ -8,9 +8,11 @@ esinos : $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 clean:
-	rm -f $(OBJ) esinos
+	rm -f $(OBJ) $(OBJ:.o=.d) esinos
 
 .PHONY: clean
+
+-include $(OBJ:.o=.d)

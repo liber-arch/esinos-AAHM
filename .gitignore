@@ -3,3 +3,4 @@ code/esinos
 *.o
 *.img
 .vscode/
+*.d
