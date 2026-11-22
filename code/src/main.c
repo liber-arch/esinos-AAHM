@@ -1,11 +1,17 @@
 #include <stdio.h>
-#include "process.h"
+#include "sched.h"
 
 
 
 int main(){
 
-	Process p = {1, 0, 5, 3, 5, -1, -1};
-	printf("esinos : P%d arrive a t=%d, duree=%d\n", p.pid, p.arrival, p.duration);
+	Process procs[MAX_PROCS];
+	int n = charger_processus("data/procs.txt", procs, MAX_PROCS);
+	if (n == -1){
+		return 1;
+	}
+
+	printf("%d processus chargés :\n", n);
+	afficher_processus(procs, n);
 	return 0;
 }
