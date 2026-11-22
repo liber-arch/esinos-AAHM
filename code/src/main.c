@@ -3,10 +3,12 @@
 
 
 
-int main(){
+int main(int argc, char *argv[]){
+
+	const char *chemin = (argc > 1) ? argv[1] : "data/procs.txt";
 
 	Process procs[MAX_PROCS];
-	int n = charger_processus("data/procs.txt", procs, MAX_PROCS);
+	int n = charger_processus(chemin, procs, MAX_PROCS);
 	if (n == -1){
 		return 1;
 	}
@@ -16,13 +18,16 @@ int main(){
 
 	Gantt g;
 	gantt_init(&g);
-	for (int t = 0; t < 5;t++) gantt_ajouter(&g,1,t);
-	for (int t = 5; t < 8;t++) gantt_ajouter(&g, 2, t);
-	gantt_ajouter(&g, -1, 8);
-	for (int t = 9; t < 11; t++) gantt_ajouter(&g, 3, t);
-	printf("\nTest du Gantt :\n");
-	gantt_afficher(&g);
-	gantt_liberer(&g);
+	simuler(procs, n, ALGO_FCFS, 0, &g);
 
+	printf("\n=== FCFS ===\n");
+	gantt_afficher(&g);
+
+	for(int i = 0; i < n; i++){
+		printf("P%d : debut = %d, fin = %d\n", procs[i].pid, procs[i].start, procs[i].finish);
+	}
+
+
+	gantt_liberer(&g);
 	return 0;
 }

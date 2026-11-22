@@ -33,5 +33,7 @@ void gantt_ajouter(Gantt *g, int pid, int t);
 void gantt_afficher(const Gantt *g);
 void gantt_liberer(Gantt *g);
 
+void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g); /* simule l'ordonnancement des processus */
+
 
 #endif
