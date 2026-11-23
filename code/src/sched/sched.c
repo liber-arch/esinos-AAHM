@@ -92,12 +92,12 @@ void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g){
                     file_ajouter(&file, i);
                 }
             }
-        }
 
         if (courant != -1 && tranche == quantum) {
             file_ajouter(&file, courant);
             courant = -1;
         }
+    }
 
         if (courant == -1) {
             if (algo == ALGO_RR) {
