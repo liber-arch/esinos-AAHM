@@ -23,9 +23,8 @@ int main(int argc, char *argv[]){
 	printf("\n=== FCFS ===\n");
 	gantt_afficher(&g);
 
-	for(int i = 0; i < n; i++){
-		printf("P%d : debut = %d, fin = %d\n", procs[i].pid, procs[i].start, procs[i].finish);
-	}
+	printf("\n");
+	afficher_metriques(procs, n);
 
 
 	gantt_liberer(&g);

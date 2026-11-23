@@ -35,5 +35,8 @@ void gantt_liberer(Gantt *g);
 
 void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g); /* simule l'ordonnancement des processus */
 
+void calculer_moyennes(const Process procs[], int n, double *attente_moy, double *rotation_moy); /* calcule les moyennes d'attente et de rotation */
+void afficher_metriques(const Process procs[], int n); /* affiche les metriques d'attente et de rotation */
+
 
 #endif
