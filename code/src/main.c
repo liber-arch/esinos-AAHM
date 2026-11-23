@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include "sched.h"
 
-#define NB_ALGOS 4
+#define NB_ALGOS 4 /*nombre d'algorithme a tester*/
 
-static void lancer(Process procs[], int n, Algo algo, int quantum, const char *nom, double *attente_moy, double *rotation_moy){
+static void lancer(Process procs[], int n, Algo algo, int quantum, const char *nom, double *attente_moy, double *rotation_moy){/*lance un algorithme sur un processus et affiche son gantt et ses metriques*/
 	Gantt g;
 	gantt_init(&g);
 

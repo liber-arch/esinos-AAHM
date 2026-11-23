@@ -5,19 +5,19 @@
 
 #define MAX_PROCS 64 /* definit le maximum de processus */
 
-typedef struct {
+typedef struct { /* definit la structure d'un segment composé du PID du processus concerné avec le temps de debut et de fin */
     int pid;
     int debut;
     int fin;
 } Segment;
 
-typedef struct {
-    Segment *seg;
+typedef struct {/* definit la structure d'un diagramme de Gantt  qui est composé de n segments et reserve cap case de memoire */
+    Segment *seg;/*Comme on ne connait pas encore le nombre de segments, on utilise un pointeur */
     int n;
     int cap;
 } Gantt;
 
-typedef enum {
+typedef enum {/* definit les différents algorithmes d'ordonnancement */
     ALGO_FCFS,
     ALGO_SJF,
     ALGO_PRIO,
@@ -28,10 +28,10 @@ typedef enum {
 int charger_processus(const char *chemin, Process procs[], int max); /* charge un processus dans la table des processus */
 void afficher_processus(const Process procs[], int n); /* affiche les processus dans la table des processus */
 
-void gantt_init(Gantt *g);
-void gantt_ajouter(Gantt *g, int pid, int t);
-void gantt_afficher(const Gantt *g);
-void gantt_liberer(Gantt *g);
+void gantt_init(Gantt *g);/* initialise un diagramme de Gantt */
+void gantt_ajouter(Gantt *g, int pid, int t)/* ajoute un segment au diagramme de Gantt */;
+void gantt_afficher(const Gantt *g);/* affiche le diagramme de Gantt */
+void gantt_liberer(Gantt *g);/* libere la memoire allouee pour le diagramme de Gantt */
 
 void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g); /* simule l'ordonnancement des processus */
 
