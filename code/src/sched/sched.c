@@ -39,8 +39,36 @@ static int choisir(const Process procs[], int n, int t, Algo algo){
     return elu;
 }
 
+typedef struct {
+    int tab[MAX_PROCS];
+    int tete;
+    int taille;
+} File;
+
+static void file_init(File *f){
+    f->tete = 0;
+    f->taille = 0;
+}
+
+static void file_ajouter(File *f, int x){
+    int fin = (f->tete + f->taille) % MAX_PROCS;
+    f->tab[fin] = x;
+    f->taille++;
+}
+
+static int file_retirer(File *f){
+    int x = f->tab[f->tete];
+    f->tete = (f->tete + 1) % MAX_PROCS;
+    f->taille--;
+    return x;
+}
+
 void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g){
-    (void)quantum;
+    
+    if (algo == ALGO_RR && quantum < 1){
+        fprintf(stderr, "Quantum invalide (%d) : on utilise 1 par défaut\n", quantum);
+        quantum = 1;
+    } 
 
     for (int i = 0; i < n; i++) {
         procs[i].remaining = procs[i].duration;
@@ -48,14 +76,38 @@ void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g){
         procs[i].finish = -1;
     }
 
+    File file;
+    file_init(&file);
+
     int t = 0;
     int termines = 0;
     int courant = -1;
+    int tranche = 0;
 
     while (termines < n){
 
+        if(algo == ALGO_RR) {
+            for (int i = 0; i < n; i++) {
+                if (procs[i].arrival == t) {
+                    file_ajouter(&file, i);
+                }
+            }
+        }
+
+        if (courant != -1 && tranche == quantum) {
+            file_ajouter(&file, courant);
+            courant = -1;
+        }
+
         if (courant == -1) {
-            courant = choisir(procs, n, t, algo);
+            if (algo == ALGO_RR) {
+                if (file.taille > 0) {
+                    courant = file_retirer(&file);
+                }
+            } else {
+                courant = choisir(procs, n, t, algo);
+            }
+            tranche = 0;
         }
 
         if (courant == -1) {
@@ -69,6 +121,7 @@ void simuler(Process procs[], int n, Algo algo, int quantum, Gantt *g){
         }
         gantt_ajouter(g, procs[courant].pid, t);
         procs[courant].remaining--;
+        tranche++;
 
 
         if (procs[courant].remaining == 0) {

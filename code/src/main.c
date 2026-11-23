@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
 	lancer(procs, n, ALGO_FCFS, 0, "FCFS");
 	lancer(procs, n, ALGO_SJF, 0, "SJF");
 	lancer(procs, n, ALGO_PRIO, 0, "PRIO");
-
+	lancer(procs, n, ALGO_RR, 2, "RR (quantum=2)");
 
 	return 0;
 }
