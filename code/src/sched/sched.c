@@ -3,13 +3,27 @@
 
 static int est_prioritaire(const Process *a, const Process *b, Algo algo){
     switch (algo) {
+        case ALGO_SJF:
+        if (a->duration != b->duration) {
+            return a->duration < b->duration;
+        }
+        break;
+
+        case ALGO_PRIO:
+        if (a->niceness != b->niceness) {
+            return a->niceness < b->niceness;
+        }
+        break;
+
         case ALGO_FCFS:
         default:
-            if (a->arrival != b->arrival){
-                return a->arrival < b->arrival;
-            }
-            return a->pid < b->pid;
+            break;
     }
+
+    if (a->arrival != b->arrival) {
+        return a->arrival < b->arrival;
+    }
+    return a->pid < b->pid;
 }
 
 static int choisir(const Process procs[], int n, int t, Algo algo){
