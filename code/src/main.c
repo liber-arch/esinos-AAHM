@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sched.h"
+#include "saisie.h"
 
 #define NB_ALGOS 4 /*nombre d'algorithme a tester*/
 
@@ -23,6 +24,13 @@ static void lancer(Process procs[], int n, Algo algo, int quantum, const char *n
 
 
 int main(int argc, char *argv[]){
+
+	int x;
+	while(lire_entier("Test(0-3, Ctrl+D pour quitter) : ", 0, 3, &x)){/*tant qu'on lis un entier ou Null on print Lu: avec la valeur saisie*/
+		printf("Lu : %d\n", x);
+	}
+
+	return 0;
 
 	const char *chemin = (argc > 1) ? argv[1] : "data/procs.txt";
 	int quantum = (argc > 2) ? atoi(argv[2]) : 2;
