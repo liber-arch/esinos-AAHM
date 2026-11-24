@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "sched.h"
 #include "saisie.h"
+#include "mem.h"
+#include "fs.h"
 
 int main () {
 	int choix = 1;
@@ -20,10 +22,10 @@ int main () {
 				menu_ordonnanceur();
 				break;
 			case 2 :
-				printf("Gestionnaire memoire non implémenté\n");
+				menu_memoire();
 				break;
 			case 3:
-				printf("Système de fichiers non implémenté\n");
+				menu_fs();
 				break;
 			case 0:
 				printf("Vous allez quitter le menu\n");
