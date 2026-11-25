@@ -1,7 +1,97 @@
 #include <stdio.h>
+#include <string.h>
 #include "fs.h"
 
 #define FICHIER_DISQUE "data/disk.img" /*on donne le chemin du fichier de disque*/
+
+static void lire_ligne(const char *invite, char *buf, int taille) {
+    printf("%s", invite);
+    if (fgets(buf, taille, stdin) == NULL) { /*lors d'un CTRL+D*/
+        buf[0] = '\0';
+        return;
+    }
+    buf[strcspn(buf, "\n")] = '\0'; /*on supprime le \n par un signe de fin de chaine*/
+}
+
+static int trouver_entree(const Disque *d, const char *nom) { /*fonction pour trouver l'entree dans le repertoire*/
+    for (int i = 0; i < NB_INODES; i++) {
+        if (d->rep[i].inode != '\0' && strcmp(d->rep[i].nom, nom) == 0) { /*on compare le nom de l'entree avec le nom du fichier et on verifie qu'il n'est pas vide*/
+            return i; /*si on trouve l'entree on retourne son indice*/
+        }
+    }
+    return -1; /*si on ne trouve pas l'entree on retourne -1*/
+}
+
+static int inode_libre(const Disque *d) { /*fonction pour trouver un inode libre*/
+    for (int i = 0; i < NB_INODES; i++) {
+        if (d->inodes[i].utilise == 0) { /*on verifie si l'inode est libre*/
+            return i; /*si on trouve un inode libre on retourne son indice*/
+        }
+    }
+    return -1; /*si on ne trouve pas d'inode libre on retourne -1*/
+}
+
+static int bloc_libre(const Disque *d) { /*fonction pour trouver un bloc libre*/
+    for (int i = 0; i < NB_BLOCS; i++) {
+        if (d->bitmap[i] == 0) { /*on verifie si le bloc est libre*/
+            return i; /*si on trouve un bloc libre on retourne son indice*/
+        }
+    }
+    return -1; /*si on ne trouve pas de bloc libre on retourne -1*/
+}
+
+static int creer_fichier(Disque *d, const char *nom, const char *contenu){
+    int taille = strlen(contenu);
+    int nb_blocs = (taille + TAILLE_BLOC - 1) / TAILLE_BLOC; /*on calcule le nombre de blocs necessaires pour stocker le contenu*/
+
+    if(strlen(nom) == 0 || strlen(nom) >= TAILLE_NOM) { /*on verifie que le nom du fichier n'est pas trop long et non vide*/
+        printf("Erreur : le nom doit faire entre 1 et %d caracteres\n", TAILLE_NOM - 1);
+        return -1;
+    }
+    if (trouver_entree(d, nom) != -1) { /*on verifie que le fichier n'existe pas deja*/
+        printf("Erreur : le fichier %s existe deja\n", nom);
+        return -1;
+    }
+    if (nb_blocs > Max_Blocs_Fichier) { /*on verifie que le fichier n'est pas trop gros*/
+        printf("Erreur : le fichier %s est trop gros (max %d octets)\n", nom, Max_Blocs_Fichier * TAILLE_BLOC);
+        return -1;
+    }
+    int n = inode_libre(d); /*on cherche un inode libre*/
+    if (n == -1) { /*si on ne trouve pas d'inode libre*/
+        printf("Erreur : plus d'inodes disponibles (%d fichiers max)\n", NB_INODES);
+        return -1;
+    }
+    int libres = 0; /*on compte le nombre de blocs libres*/
+    for (int i = 0; i < NB_BLOCS; i++) {
+        if (d->bitmap[i] == 0) {
+            libres++;
+        }
+    }
+    if (libres < nb_blocs) { /*si le nombre de blocs libres est inferieur au nombre de blocs necessaires pour stocker le contenu*/
+        printf("Erreur : plus de blocs disponibles (%d octets max)\n", NB_BLOCS * TAILLE_BLOC);
+        return -1; 
+    }
+    for (int k = 0; k < nb_blocs; k++) { /*on cherche les blocs libres et on les associe a l'inode*/
+        int b = bloc_libre(d);
+        d->bitmap[b] = 1; /*on marque le bloc comme utilise*/
+        d->inodes[n].blocs[k] = b; /*on associe le bloc a l'inode*/
+    }
+    for (int pos = 0; pos < taille; pos++) { /*on ecrit le contenu dans les blocs associes a l'inode*/
+        int b = d->inodes[n].blocs[pos / TAILLE_BLOC]; /*on calcule le bloc correspondant a la position du caractere*/
+        d->donnes[b][pos % TAILLE_BLOC] = contenu[pos]; /*on ecrit le caractere dans le bloc*/
+    }
+    d->inodes[n].utilise = 1; /*on marque l'inode comme utilise*/
+    d->inodes[n].taille = taille; /*on met la taille du fichier dans l'inode*/
+    strcpy(d->rep[n].nom, nom); /*on met le nom du fichier dans l'entree du repertoire*/
+    d->rep[n].inode = n; /*on associe l'inode a l'entree du repertoire*/
+
+    printf("%s créé : inode %d, %d octets, %d blocs\n", nom, n, taille, nb_blocs);
+    for (int k = 0; k < nb_blocs; k++) {
+        printf("  bloc %d\n", d->inodes[n].blocs[k]);
+    }
+    printf("\n");
+    return 0;
+}
 
 static void formater(Disque *d) { /*fonction pour formater le disque*/
     d->sb.taille_bloc = TAILLE_BLOC; /*on met les caracteristiques du disque*/
@@ -58,5 +148,26 @@ void menu_fs(void)
 {
     Disque d;/*on crée le disque*/
     charger(&d);/*on charge le disque depuis le fichier*/
-    printf("Disque : %d blocs de %d octets, %d inodes\n", d.sb.nb_blocs, d.sb.taille_bloc, d.sb.nb_inodes);/*On affiche les données associées au disque*/
+
+    int choix = -1;
+    while (choix != 0) { /*tant que l'utilisateur ne choisit pas de quitter*/
+        printf("--- Système de fichiers ---\n");
+        printf("1. Créer un fichier\n");
+        printf("0. Retour au menu principal\n");
+        if (!lire_entier("Choix : ",0, 1, &choix)){
+            return;
+        }
+
+        char nom[64]; /* un peu plus grand que Taille_nom pour pouvoir detecter un nom trop long*/
+        char contenu[300]; /* un peu plus grand que le maximum de Max_Blocs_Fichier * Taille_bloc pour pouvoir detecter un contenu trop long*/
+        
+        switch (choix) {
+            case 1:
+                lire_ligne("Nom du fichier : ", nom, sizeof(nom));
+                lire_ligne("Contenu : ", contenu, sizeof(contenu));
+                if (creer_fichier(&d, nom, contenu) == 0) { /*si la creation du fichier reussit*/
+                    sauver(&d); /*on sauve le disque dans le fichier*/
+                }
+                break;
+        }
 }
