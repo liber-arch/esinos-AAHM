@@ -5,7 +5,7 @@
 #define NB_BLOCS 32
 #define NB_INODES 8
 #define Max_Blocs_Fichier 4
-#define Taille_Nom 16
+#define TAILLE_NOM 16
 
 typedef struct { /*les caracteristiques du disque*/
     int taille_bloc;
@@ -20,7 +20,7 @@ typedef struct {/*on sait si l'inode est utilise combien de blocs il utilise et 
 } Inode;
 
 typedef struct {/*permet de stocker les informations sur les fichiers dans le repertoire*/
-    char nom[Taille_Nom];
+    char nom[TAILLE_NOM];
     int inode;
 } EntreeRep;
 

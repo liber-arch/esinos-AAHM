@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "fs.h"
+#include "saisie.h"
 
 #define FICHIER_DISQUE "data/disk.img" /*on donne le chemin du fichier de disque*/
 
@@ -15,7 +16,7 @@ static void lire_ligne(const char *invite, char *buf, int taille) {
 
 static int trouver_entree(const Disque *d, const char *nom) { /*fonction pour trouver l'entree dans le repertoire*/
     for (int i = 0; i < NB_INODES; i++) {
-        if (d->rep[i].inode != '\0' && strcmp(d->rep[i].nom, nom) == 0) { /*on compare le nom de l'entree avec le nom du fichier et on verifie qu'il n'est pas vide*/
+        if (d->rep[i].inode != -1 && strcmp(d->rep[i].nom, nom) == 0) { /*on compare le nom de l'entree avec le nom du fichier et on verifie qu'il n'est pas vide*/
             return i; /*si on trouve l'entree on retourne son indice*/
         }
     }
@@ -170,4 +171,5 @@ void menu_fs(void)
                 }
                 break;
         }
+}
 }
