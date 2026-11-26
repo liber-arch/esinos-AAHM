@@ -253,8 +253,9 @@ void menu_fs(void)
         printf("4. Supprimer un fichier\n");
         printf("5. Table des inodes\n");
         printf("6. Bitmap des blocs\n");
+        printf("7. Formater le disque\n");
         printf("0. Retour au menu principal\n");
-        if (!lire_entier("Choix : ", 0, 6, &choix)){
+        if (!lire_entier("Choix : ", 0, 7, &choix)){
             return;
         }
 
@@ -283,11 +284,19 @@ void menu_fs(void)
                 }
                 break;
             case 5:
-            afficher_inodes(&d);
-            break;
+                afficher_inodes(&d);
+                break;
             case 6:
-            afficher_bitmap(&d);
-            break;
+                afficher_bitmap(&d);
+                break;
+            case 7:
+                int ok;
+                if (lire_entier("Effacer Tous les fichiers ? (1 = oui, 0 = non) : ", 0, 1, &ok) && ok == 1){/*Demande l'input de l'utilisateur et check si il nous donne 1 qui veut dire oui pour le formatage*/
+                    formater(&d);/*on formate*/
+                    sauver(&d);/*on sauvegarde*/
+                    printf("Disquer formate.\n");/*on affiche que le disque a été formaté*/
+                }
+                break;
         }
 }
 }
