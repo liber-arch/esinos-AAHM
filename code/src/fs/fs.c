@@ -145,6 +145,38 @@ static void charger(Disque *d) { /*fonction pour charger le disque depuis un fic
     fclose(f); /*on ferme le fichier*/
 }
 
+static void lire_fichier(const Disque *d, const char *nom){
+    int e = trouver_entree(d, nom);/*on cherche le nom dans le repertoire*/
+    if (e == -1){/*Si on ne trouve pas le nom on affiche un message d'erreur*/
+        printf("Erreur : le fichier %s n'existe pas\n", nom);
+        return;
+    }
+    int n = d->rep[e].inode;/*a partir du repertoire on donne le numero d'inode*/
+    printf("--- %s (inode %d, %d octets) ---\n", nom, n, d->inodes[n].taille);/*on affiche les données associés*/
+
+    for (int pos = 0; pos < d->inodes[n].taille; pos++) {/*on parcourt l'inode*/
+        int b = d->inodes[n].blocs[pos / TAILLE_BLOC]; /*on divise le blocs en morceaux*/
+        putchar(d->donnes[b][pos % TAILLE_BLOC]);/*On sort le caractere a la position b*/
+    }
+    printf("\n");
+}
+
+static void lister(const Disque *d){/*liste le contenu d'un disque*/
+    printf("%-15s | Inode | Taille\n", "Nom");/*affiche le format du tableau*/
+    printf("----------------+-------+-------\n");
+    int nb = 0;
+    for (int i = 0; i < NB_INODES; i++) {/*On parcourt les inodes*/
+        if (d->rep[i].inode != -1) {/*tant que l'inode existe*/
+            int n = d->rep[i].inode;/*n correspond a l'inode qui existe*/
+            printf("%-15s | %5d | %6d\n", d->rep[i].nom, n, d->inodes[n].taille);/*On affiche le nom du repertoire et la taille de l'inode */
+            nb++;/*a chaque fichier trouver on incremente*/
+        }
+    }
+    if (nb == 0){/*Si on ne trouve aucun fichier dans le repertoire on affiche qu'il est vide*/
+        printf("(aucun fichier)\n");
+    }
+}
+
 void menu_fs(void)
 {
     Disque d;/*on crée le disque*/
@@ -154,8 +186,10 @@ void menu_fs(void)
     while (choix != 0) { /*tant que l'utilisateur ne choisit pas de quitter*/
         printf("--- Système de fichiers ---\n");
         printf("1. Créer un fichier\n");
+        printf("2. Lire un fichier\n");
+        printf("3. Lister les fichiers (ls)\n");
         printf("0. Retour au menu principal\n");
-        if (!lire_entier("Choix : ",0, 1, &choix)){
+        if (!lire_entier("Choix : ", 0, 3, &choix)){
             return;
         }
 
@@ -169,6 +203,13 @@ void menu_fs(void)
                 if (creer_fichier(&d, nom, contenu) == 0) { /*si la creation du fichier reussit*/
                     sauver(&d); /*on sauve le disque dans le fichier*/
                 }
+                break;
+            case 2:
+                lire_ligne("Nom du fichier : ", nom, sizeof(nom));/*lis le nom du fichier*/
+                lire_fichier(&d, nom);/*affiche le fichier a partir du nom*/
+                break;
+            case 3:
+                lister(&d);
                 break;
         }
 }
