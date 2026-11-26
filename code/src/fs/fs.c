@@ -177,6 +177,33 @@ static void lister(const Disque *d){/*liste le contenu d'un disque*/
     }
 }
 
+static int supprimer_fichier(Disque *d, const char *nom) {
+    int e = trouver_entree(d, nom);/*on cherche le nom dans le repertoire*/
+    if (e == -1){/*on check si le nom n'existe pas et si c'est le cas on l'affiche*/
+        printf("Erreur : le fichier %s n'existe pas\n", nom);
+        return -1;
+    }
+    int n = d->rep[e].inode;/*on stocke l'etat de l'inode du fichier choisi*/
+
+    for (int k = 0;k < Max_Blocs_Fichier; k++){/*on parcourt les blocs de l'inode*/
+        int b = d->inodes[n].blocs[k];/*on stock l'indice du bloc*/
+        if (b != 1){
+            d->bitmap[b] = 0;/*on montre que l'emplacement est vide sur la bitmap*/
+            d->inodes[n].blocs[k] = -1;/*on montre que le bloc est vide*/
+        }
+    }
+    d->inodes[n].utilise = 0;/*on montre que l'inode n'est pas utilisé*/
+    d->inodes[n].taille = 0;/*on montre que son contenu est vide*/
+
+    d->rep[e].nom[0] = '\0';/*on vide le nom associé dans le repertoire*/
+    d->rep[e].inode = -1;/*de meme pour l'inode*/
+
+    printf("%s supprime (inode %d libere)\n", nom, n);
+    return 0;
+
+
+}
+
 void menu_fs(void)
 {
     Disque d;/*on crée le disque*/
@@ -188,8 +215,9 @@ void menu_fs(void)
         printf("1. Créer un fichier\n");
         printf("2. Lire un fichier\n");
         printf("3. Lister les fichiers (ls)\n");
+        printf("4. Supprimer un fichier\n");
         printf("0. Retour au menu principal\n");
-        if (!lire_entier("Choix : ", 0, 3, &choix)){
+        if (!lire_entier("Choix : ", 0, 4, &choix)){
             return;
         }
 
@@ -210,6 +238,12 @@ void menu_fs(void)
                 break;
             case 3:
                 lister(&d);
+                break;
+            case 4:
+                lire_ligne("Nom du fichier : ", nom, sizeof(nom));/*lis le nom du fichier*/
+                if (supprimer_fichier(&d, nom) == 0) {/*Lorsque la suppression réussit*/
+                    sauver(&d);/*on sauvegarde le disque*/
+                }
                 break;
         }
 }
