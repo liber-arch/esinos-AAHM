@@ -204,6 +204,41 @@ static int supprimer_fichier(Disque *d, const char *nom) {
 
 }
 
+static void afficher_inodes(const Disque *d){
+    printf("Inode | Utilise | Taille | Blocs\n");/*print le format du tableau*/
+    printf("------+---------+--------+------------\n");
+    for (int i = 0; i < NB_INODES; i++){/*On parcourt les inodes*/
+        if(d->inodes[i].utilise){/*Lorsqu'on on voit qu'elle est utilisé*/
+            printf("%5d |   oui   | %6d |", i, d->inodes[i].taille);/*on affiche son indice l'indication qu'elle est utilisé et sa taille*/
+            for (int k = 0; k < Max_Blocs_Fichier; k++){/*On parcourt les blocs*/
+                if(d->inodes[i].blocs[k] != -1){/*Si le bloc est utilisé*/
+                    printf(" %d", d->inodes[i].blocs[k]);/*on affiche les cases de bloc utilisé*/
+                }
+            }
+            printf("\n");
+        } else {
+            printf("%5d |   non   |      - | -\n", i);/*Autrement on affiche l'indice de l'inode vide en montrant qu'il n'est pas utilisé*/
+        }
+    }
+}
+
+static void afficher_bitmap(const Disque *d) {
+    int libres = 0;/*compte les blocs libre*/
+    printf("Bitmap des blocs (1 = occupe, 0 = libre) :\n");/* legende de l'affichage*/
+    for (int i = 0; i < NB_BLOCS; i++){/*on parcourt les blocs*/
+        if (i % 16 == 0){/*on check si c'est le premier element et on affiche le debut*/
+            printf("Blocs %2d-%2d : ", i, i + 15);
+        }
+        printf("%d ", d->bitmap[i]);/*on ajoute l'etat de chaque element a la bitmap*/
+        if (d->bitmap[i] == 0) {
+            libres++;/*incremente a chaque fois qu'on voit un bloc vide*/
+        }
+        if (i % 16 == 15){/*au bout de 15 blocs on passe a la ligne */
+            printf("\n");
+        }
+    }
+    printf("Blocs libres : %d / %d\n", libres,NB_BLOCS);/*on montre combien de blocs sont libres sur le total*/
+}
 void menu_fs(void)
 {
     Disque d;/*on crée le disque*/
@@ -216,8 +251,10 @@ void menu_fs(void)
         printf("2. Lire un fichier\n");
         printf("3. Lister les fichiers (ls)\n");
         printf("4. Supprimer un fichier\n");
+        printf("5. Table des inodes\n");
+        printf("6. Bitmap des blocs\n");
         printf("0. Retour au menu principal\n");
-        if (!lire_entier("Choix : ", 0, 4, &choix)){
+        if (!lire_entier("Choix : ", 0, 6, &choix)){
             return;
         }
 
@@ -245,6 +282,12 @@ void menu_fs(void)
                     sauver(&d);/*on sauvegarde le disque*/
                 }
                 break;
+            case 5:
+            afficher_inodes(&d);
+            break;
+            case 6:
+            afficher_bitmap(&d);
+            break;
         }
 }
 }
